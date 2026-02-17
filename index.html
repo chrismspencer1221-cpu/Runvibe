@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RunVibe • Zero to 26.2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    .task-done { text-decoration: line-through; opacity: 0.7; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+  <div class="max-w-2xl mx-auto p-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 pt-4">
+      <div>
+        <h1 class="text-4xl font-bold flex items-center gap-3">🏃‍♂️ RunVibe</h1>
+        <p class="text-emerald-400 text-sm">Zero to 26.2 • Kansas City Runner Edition</p>
+      </div>
+      <button onclick="showSettings()" class="p-2 hover:bg-zinc-800 rounded-xl">
+        <i class="fa-solid fa-gear text-2xl"></i>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-zinc-800 mb-6">
+      <button onclick="switchTab(0)" class="tab-btn flex-1 py-3 font-medium border-b-2 border-emerald-500 text-emerald-400" id="tab-0">Dashboard</button>
+      <button onclick="switchTab(1)" class="tab-btn flex-1 py-3 font-medium text-zinc-400" id="tab-1">Today</button>
+      <button onclick="switchTab(2)" class="tab-btn flex-1 py-3 font-medium text-zinc-400" id="tab-2">Progress</button>
+      <button onclick="switchTab(3)" class="tab-btn flex-1 py-3 font-medium text-zinc-400" id="tab-3">Motivation</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="content-0" class="tab-content">
+      <div class="bg-zinc-900 rounded-3xl p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <p class="text-sm text-zinc-400">Week <span id="week-num" class="text-5xl font-bold text-white">1</span>/52</p>
+            <p id="days-to-race" class="text-emerald-400 text-xl"></p>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold" id="streak">0 🔥</div>
+            <p class="text-xs text-zinc-400">day streak</p>
+          </div>
+        </div>
+        <div class="w-full bg-zinc-800 h-4 rounded-full overflow-hidden">
+          <div id="progress-bar" class="bg-gradient-to-r from-emerald-400 to-teal-400 h-full rounded-full transition-all" style="width: 2%"></div>
+        </div>
+        <p class="text-center text-xs text-zinc-400 mt-2" id="progress-text">2% to marathon ready</p>
+      </div>
+
+      <div onclick="switchTab(1)" class="bg-zinc-900 hover:bg-zinc-800 cursor-pointer rounded-3xl p-6 flex items-center justify-between">
+        <div>
+          <p class="text-emerald-400 font-medium">Today's mission</p>
+          <p id="dash-today-main" class="text-2xl font-semibold">Loading your walk...</p>
+        </div>
+        <i class="fa-solid fa-arrow-right text-3xl text-emerald-500"></i>
+      </div>
+    </div>
+
+    <!-- Today -->
+    <div id="content-1" class="tab-content hidden">
+      <div class="bg-zinc-900 rounded-3xl p-6 mb-6">
+        <div class="flex justify-between mb-4">
+          <div>
+            <p class="text-sm text-zinc-400">Today • <span id="today-date" class="font-medium"></span></p>
+            <p id="today-phase" class="text-emerald-400 font-medium"></p>
+          </div>
+          <div class="text-right">
+            <p class="text-4xl font-bold" id="today-long"></p>
+            <p class="text-xs text-zinc-400">prescribed miles</p>
+          </div>
+        </div>
+
+        <div id="task-list" class="space-y-4"></div>
+
+        <div class="mt-8">
+          <label class="block text-sm text-zinc-400 mb-2">Actual miles completed today</label>
+          <div class="flex gap-3">
+            <input id="miles-input" type="number" step="0.1" placeholder="3.0" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 w-28 text-2xl focus:outline-none focus:border-emerald-500">
+            <button onclick="logDay()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 font-semibold rounded-2xl py-3">Log & Celebrate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div id="content-2" class="tab-content hidden">
+      <div class="bg-zinc-900 rounded-3xl p-6">
+        <h2 class="text-xl font-semibold mb-4">Your Journey So Far</h2>
+        <div id="progress-stats" class="grid grid-cols-2 gap-4 text-center">
+          <!-- filled by JS -->
+        </div>
+        <div class="mt-8">
+          <h3 class="text-sm uppercase tracking-widest text-zinc-400 mb-3">Recent logs</h3>
+          <div id="recent-logs" class="space-y-2 text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motivation -->
+    <div id="content-3" class="tab-content hidden">
+      <div class="bg-zinc-900 rounded-3xl p-8 text-center">
+        <div id="quote" class="italic text-xl leading-relaxed mb-6">"The miracle isn't that I finished. The miracle is that I had the courage to start."</div>
+        <p id="quote-author" class="text-emerald-400">— John Bingham</p>
+      </div>
+      <p class="text-center text-xs text-zinc-500 mt-8">New quote every time you open the app. You've got this, KC runner.</p>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center">
+    <div class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-6">Training Start Date</h2>
+      <input id="start-date-input" type="date" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 w-full text-xl">
+      <div class="mt-8 flex gap-3">
+        <button onclick="saveSettings()" class="flex-1 bg-emerald-500 py-4 rounded-2xl font-semibold">Save</button>
+        <button onclick="hideSettings()" class="flex-1 bg-zinc-800 py-4 rounded-2xl font-semibold">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let startDate = localStorage.getItem('runvibe_start') || new Date().toISOString().split('T')[0];
+    let logs = JSON.parse(localStorage.getItem('runvibe_logs') || '{}');
+
+    const quotes = [
+      ["The miracle isn't that I finished. The miracle is that I had the courage to start.", "— John Bingham"],
+      ["You don't have to be fast. You just have to go.", "— Unknown"],
+      ["Run when you can, walk if you have to, crawl if you must; just never give up.", "— Dean Karnazes"],
+      ["Kansas City finish line is waiting for you. One day at a time.", "— RunVibe"],
+      ["The pain of discipline is nothing compared to the pain of regret.", "— Unknown"],
+      ["You're not just training for 26.2 miles — you're becoming unstoppable.", "— RunVibe"]
+    ];
+
+    function getCurrentWeek() {
+      const start = new Date(startDate);
+      const today = new Date();
+      const diffTime = Math.abs(today - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return Math.min(52, Math.max(1, Math.floor(diffDays / 7) + 1));
+    }
+
+    function calcLong(week) {
+      if (week <= 4) return 3.5;
+      if (week <= 8) return 3.5 + (week - 4) * 0.5;
+      let d = 5 + Math.floor((week - 8) * 0.6);
+      return Math.min(d, week > 48 ? 12 : 20);
+    }
+
+    function calcEasy(week) {
+      if (week <= 8) return 3;
+      return Math.max(3, Math.round(calcLong(week) * 0.5));
+    }
+
+    function getPhase(week) {
+      if (week <= 8) return "Walk-Build Phase (introducing short run intervals)";
+      if (week <= 20) return "Run-Base Phase";
+      if (week <= 40) return "Build Phase";
+      return "Peak & Taper Phase";
+    }
+
+    function getWeekday() {
+      return new Date().getDay();
+    }
+
+    function generateTasks(week) {
+      const wd = getWeekday();
+      const long = calcLong(week);
+      const easy = calcEasy(week);
+      let primary = "";
+
+      if (wd === 0) {
+        if (week <= 8) {
+          primary = `Long Walk: ${long.toFixed(1)} miles total – steady comfortable pace, all walk OK`;
+        } else {
+          primary = `Long Run/Walk: ${long.toFixed(1)} miles – use run/walk intervals as needed`;
+        }
+      } else if (wd === 2) {
+        if (week <= 8) {
+          primary = `Brisk Walk: ${easy.toFixed(1)} miles – comfortable effort, no running required`;
+        } else {
+          primary = `Tempo Walk/Run: ${easy.toFixed(1)} miles – middle portion faster`;
+        }
+      } else if (wd === 4) {
+        primary = `Steady Effort: ${easy.toFixed(1)} miles – conversational pace (walk if needed)`;
+      } else if (wd === 1 || wd === 3 || wd === 5) {
+        primary = `Easy Day: ${easy.toFixed(1)} miles walk/run + strength focus`;
+      } else {
+        primary = `Active Recovery: 2–3 mile easy walk or full rest`;
+      }
+
+      return [
+        { id: 1, text: primary, done: false },
+        { id: 2, text: 'Strength: 3×10 squats, 3×30s plank, 3×10 lunges/leg (modify as needed)', done: false },
+        { id: 3, text: 'Mobility: 10-15 min stretch + foam roll', done: false },
+        { id: 4, text: 'Hydrate & fuel: 80+ oz water + protein after', done: false },
+        { id: 5, text: 'Mindset: 5 min journal or visualize KC finish line', done: false }
+      ];
+    }
+
+    function renderToday() {
+      const week = getCurrentWeek();
+      const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      document.getElementById('today-date').textContent = todayStr;
+      document.getElementById('today-phase').textContent = `Week ${week} • ${getPhase(week)}`;
+
+      const longEl = document.getElementById('today-long');
+      longEl.textContent = `${calcLong(week).toFixed(1)} mi`;
+
+      const tasks = generateTasks(week);
+      const todayKey = new Date().toISOString().split('T')[0];
+      const saved = logs[todayKey] || { tasksDone: 0 };
+
+      let html = '';
+      tasks.forEach((t, i) => {
+        const checked = saved.tasksDone > i ? 'checked' : '';
+        html += `
+          <div onclick="toggleTask(${i})" class="flex items-center gap-4 bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer transition">
+            <input type="checkbox" ${checked} class="w-6 h-6 accent-emerald-500">
+            <span class="flex-1 ${checked ? 'task-done' : ''}">${t.text}</span>
+          </div>`;
+      });
+      document.getElementById('task-list').innerHTML = html;
+    }
+
+    function toggleTask(idx) {
+      alert("Task toggled! (We'll add full saving next if you want)");
+      renderToday();
+    }
+
+    function logDay() {
+      const miles = parseFloat(document.getElementById('miles-input').value) || 0;
+      const todayKey = new Date().toISOString().split('T')[0];
+      const week = getCurrentWeek();
+
+      logs[todayKey] = { miles: miles, tasksDone: 5, week: week };
+      localStorage.setItem('runvibe_logs', JSON.stringify(logs));
+
+      confettiBurst();
+
+      alert(`Day logged! ${miles} miles crushed. 🔥`);
+      renderToday();
+      switchTab(2);
+    }
+
+    function confettiBurst() {
+      const colors = ['#10b981', '#34d399', '#a5f3fc'];
+      for (let i = 0; i < 80; i++) {
+        setTimeout(() => {
+          const c = document.createElement('div');
+          c.style.position = 'fixed'; c.style.left = Math.random() * 100 + 'vw';
+          c.style.top = '-10px'; c.style.width = '8px'; c.style.height = '8px';
+          c.style.background = colors[Math.floor(Math.random()*colors.length)];
+          c.style.opacity = '0.9';
+          document.body.appendChild(c);
+          let y = -10;
+          const fall = setInterval(() => {
+            y += 8 + Math.random()*6; c.style.top = y + 'px';
+            if (y > window.innerHeight) { clearInterval(fall); c.remove(); }
+          }, 16);
+        }, i * 4);
+      }
+    }
+
+    function updateDashboard() {
+      const week = getCurrentWeek();
+      document.getElementById('week-num').textContent = week;
+
+      const raceDate = new Date(startDate); raceDate.setMonth(raceDate.getMonth() + 12);
+      const daysLeft = Math.ceil((raceDate - new Date()) / (1000*60*60*24));
+      document.getElementById('days-to-race').innerHTML = `${daysLeft} days until your marathon`;
+
+      const progress = Math.round((week / 52) * 100);
+      document.getElementById('progress-bar').style.width = `${progress}%`;
+      document.getElementById('progress-text').textContent = `${progress}% to marathon ready`;
+
+      let streak = 0;
+      let checkDate = new Date();
+      for (let i = 0; i < 30; i++) {
+        if (logs[checkDate.toISOString().split('T')[0]]) streak++;
+        else if (i > 0) break;
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+      document.getElementById('streak').innerHTML = `${streak} <span class="text-xl">🔥</span>`;
+    }
+
+    function updateProgressPage() {
+      let totalMiles = 0, daysLogged = 0;
+      const recent = [];
+      Object.keys(logs).sort().reverse().slice(0,7).forEach(k => {
+        totalMiles += logs[k].miles || 0; daysLogged++;
+        recent.push(`<div class="flex justify-between bg-zinc-800 p-3 rounded-2xl"><span>${k}</span><span>${logs[k].miles} mi</span></div>`);
+      });
+
+      document.getElementById('progress-stats').innerHTML = `
+        <div class="bg-zinc-800 rounded-2xl p-4"><div class="text-5xl font-bold text-emerald-400">${daysLogged}</div><div class="text-zinc-400 text-sm">days logged</div></div>
+        <div class="bg-zinc-800 rounded-2xl p-4"><div class="text-5xl font-bold">${totalMiles.toFixed(1)}</div><div class="text-zinc-400 text-sm">total miles</div></div>
+      `;
+      document.getElementById('recent-logs').innerHTML = recent.length ? recent.join('') : '<p class="text-zinc-400">No logs yet</p>';
+    }
+
+    function loadRandomQuote() {
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quote').textContent = `"${q[0]}"`;
+      document.getElementById('quote-author').textContent = q[1];
+    }
+
+    function switchTab(n) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`content-${n}`).classList.remove('hidden');
+      document.querySelectorAll('.tab-btn').forEach((b,i) => {
+        b.classList.toggle('border-b-2', i===n);
+        b.classList.toggle('border-emerald-500', i===n);
+        b.classList.toggle('text-emerald-400', i===n);
+        b.classList.toggle('text-zinc-400', i!==n);
+      });
+      if (n === 1) renderToday();
+      if (n === 2) updateProgressPage();
+    }
+
+    function showSettings() {
+      document.getElementById('start-date-input').value = startDate;
+      document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function hideSettings() {
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+      startDate = document.getElementById('start-date-input').value || new Date().toISOString().split('T')[0];
+      localStorage.setItem('runvibe_start', startDate);
+      hideSettings();
+      updateDashboard();
+      renderToday();
+    }
+
+    window.onload = () => {
+      updateDashboard();
+      renderToday();
+      loadRandomQuote();
+      switchTab(0);
+    };
+  </script>
+</body>
+</html>
